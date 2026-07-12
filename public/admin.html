@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wedding Upload Admin</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell shell-wide">
+      <header class="gallery-head">
+        <div>
+          <p class="kicker">Admin</p>
+          <h1>Wedding uploads</h1>
+        </div>
+        <a class="ghost-link" href="/">Upload page</a>
+      </header>
+      <label class="field admin-key">
+        <span>Admin key</span>
+        <input id="adminKey" type="password" autocomplete="current-password" placeholder="Set as ADMIN_KEY in Cloudflare" />
+      </label>
+      <div class="actions">
+        <button id="loadAdmin" type="button">Load uploads</button>
+      </div>
+      <div id="adminList" class="admin-list"></div>
+      <p id="adminStatus" class="status">Enter the admin key to list originals.</p>
+    </main>
+    <script src="/admin.js" type="module"></script>
+  </body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f0e8" />
+    <title>Joep & Partner's Wedding Photos</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="intro" aria-labelledby="title">
+        <p class="kicker">Since you're a data person...</p>
+        <h1 id="title">Welcome to Joep &amp; Partner's Wedding!</h1>
+        <p class="lede">We'd love to see the day through your eyes. Upload your favorite photos and videos below.</p>
+      </section>
+
+      <section class="uploader" aria-label="Photo and video uploader">
+        <label class="field">
+          <span>Your name <small>optional</small></span>
+          <input id="guestName" autocomplete="name" maxlength="80" placeholder="So we know who to thank" />
+        </label>
+
+        <label id="dropZone" class="drop-zone" for="fileInput">
+          <input id="fileInput" type="file" accept="image/*,video/*" multiple />
+          <span class="drop-icon" aria-hidden="true">+</span>
+          <strong>Tap to choose files</strong>
+          <span>or drag &amp; drop photos and videos here</span>
+        </label>
+
+        <label class="toggle">
+          <input id="compressImages" type="checkbox" checked />
+          <span>Compress large photos before upload</span>
+        </label>
+
+        <div class="actions">
+          <button id="uploadButton" type="button" disabled>Upload memories</button>
+          <a class="ghost-link" href="/gallery.html">View live gallery</a>
+        </div>
+
+        <div class="progress" aria-live="polite">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <p id="status" class="status">Choose a few files to begin.</p>
+        <ul id="fileList" class="file-list" aria-label="Selected files"></ul>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

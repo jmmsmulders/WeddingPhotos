@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# WeddingPhotos local test uploads
+.local-uploads/
