@@ -11,6 +11,7 @@ const originalsDir = join(dataDir, "originals");
 const previewsDir = join(dataDir, "previews");
 const hashesDir = join(dataDir, "hashes");
 const adminKey = process.env.ADMIN_KEY || "local-admin";
+const monthlyLimitGb = Number(process.env.MONTHLY_UPLOAD_LIMIT_GB || 9.5);
 const port = Number(process.env.PORT || 8788);
 
 await Promise.all([mkdir(originalsDir, { recursive: true }), mkdir(previewsDir, { recursive: true }), mkdir(hashesDir, { recursive: true })]);
@@ -20,6 +21,7 @@ createServer(async (req, res) => {
     const url = new URL(req.url || "/", `http://${req.headers.host}`);
     if (req.method === "POST" && url.pathname === "/api/upload") return upload(req, res);
     if (req.method === "GET" && url.pathname === "/api/gallery") return gallery(res);
+    if (req.method === "GET" && url.pathname === "/api/quota") return quota(res);
     if (req.method === "GET" && url.pathname === "/api/admin/uploads") return admin(req, res);
     if (req.method === "GET" && url.pathname === "/api/file") return file(url, res);
     return staticFile(url, res);
@@ -55,6 +57,15 @@ async function upload(req, res) {
   } catch {}
 
   const now = new Date();
+  const uploadBytes = file.size + (preview?.size || 0) + 2048;
+  const usage = await readUsage(now);
+  if (usage.usedBytes + uploadBytes > usage.limitBytes) {
+    return json(res, {
+      error: "The wedding upload limit has been reached for this month. Please send this file to Joep directly.",
+      quota: usage
+    }, 429);
+  }
+
   const safeBase = `${now.getTime()}-${hash.slice(0, 12)}`;
   const objectName = `${safeBase}${extensionFor(file.name, file.type)}`;
   const previewName = preview && typeof preview !== "string" ? `${safeBase}.jpg` : "";
@@ -68,6 +79,7 @@ async function upload(req, res) {
   const metadata = { key: objectName, previewKey: previewName, guestName, originalName, uploadedAt: now.toISOString(), hash, type: file.type, size: file.size };
   await writeFile(`${objectPath}.json`, JSON.stringify(metadata, null, 2));
   await writeFile(duplicatePath, JSON.stringify(metadata, null, 2));
+  await saveUsage(now, usage.usedBytes + uploadBytes, usage.limitBytes);
   json(res, { duplicate: false, key: objectName, hash });
 }
 
@@ -97,6 +109,17 @@ async function admin(req, res) {
   });
 }
 
+async function quota(res) {
+  const usage = await readUsage(new Date());
+  json(res, {
+    month: usage.month,
+    limitBytes: usage.limitBytes,
+    usedBytes: usage.usedBytes,
+    remainingBytes: Math.max(0, usage.limitBytes - usage.usedBytes),
+    percentUsed: usage.limitBytes ? Math.round((usage.usedBytes / usage.limitBytes) * 1000) / 10 : 0
+  });
+}
+
 async function file(url, res) {
   const key = url.searchParams.get("key") || "";
   const parts = key.split("/");
@@ -123,6 +146,20 @@ async function listMetadata() {
   const names = await readdir(originalsDir);
   const metadata = await Promise.all(names.filter((name) => name.endsWith(".json")).map(async (name) => JSON.parse(await readFile(join(originalsDir, name), "utf8"))));
   return metadata.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+}
+
+async function readUsage(now) {
+  const month = now.toISOString().slice(0, 7);
+  const limitBytes = Math.floor(monthlyLimitGb * 1024 * 1024 * 1024);
+  const usagePath = join(dataDir, `usage-${month}.json`);
+  const usage = await readFile(usagePath, "utf8").then(JSON.parse).catch(() => ({}));
+  return { month, limitBytes, usedBytes: Number(usage.usedBytes || 0) };
+}
+
+async function saveUsage(now, usedBytes, limitBytes) {
+  const month = now.toISOString().slice(0, 7);
+  const usagePath = join(dataDir, `usage-${month}.json`);
+  await writeFile(usagePath, JSON.stringify({ usedBytes, limitBytes, updatedAt: new Date().toISOString() }, null, 2));
 }
 
 function json(res, body, status = 200) {

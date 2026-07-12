@@ -11,9 +11,15 @@
       <header class="gallery-head">
         <div>
           <p class="kicker">Live gallery</p>
-          <h1>Joep &amp; Partner's Wedding</h1>
+          <h1>Joep &amp; Juliana's Wedding</h1>
         </div>
-        <a class="ghost-link" href="/">Upload</a>
+        <div class="gallery-actions">
+          <div class="segmented" aria-label="Gallery view size">
+            <button id="largeView" type="button" aria-pressed="true">Large</button>
+            <button id="compactView" type="button" aria-pressed="false">Gallery</button>
+          </div>
+          <a class="ghost-link" href="/">Upload</a>
+        </div>
       </header>
       <div id="gallery" class="gallery" aria-live="polite"></div>
       <p id="galleryStatus" class="status">Loading the latest uploads...</p>

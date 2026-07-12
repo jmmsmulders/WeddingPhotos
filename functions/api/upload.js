@@ -1,4 +1,5 @@
 const MAX_BYTES = 120 * 1024 * 1024;
+const DEFAULT_MONTHLY_LIMIT_GB = 9.5;
 
 export async function onRequestPost({ request, env }) {
   if (!env.WEDDING_BUCKET) {
@@ -27,6 +28,15 @@ export async function onRequestPost({ request, env }) {
   }
 
   const now = new Date();
+  const uploadBytes = file.size + (preview?.size || 0) + 2048;
+  const quota = await checkMonthlyQuota(env, now, uploadBytes);
+  if (!quota.allowed) {
+    return json({
+      error: `The wedding upload limit has been reached for this month. Please send this file to Joep directly.`,
+      quota
+    }, 429);
+  }
+
   const extension = extensionFor(file.name, file.type);
   const objectKey = `originals/${now.toISOString().slice(0, 10)}/${now.getTime()}-${digest.slice(0, 12)}${extension}`;
   const previewKey = preview ? `previews/${now.toISOString().slice(0, 10)}/${now.getTime()}-${digest.slice(0, 12)}.jpg` : "";
@@ -53,6 +63,7 @@ export async function onRequestPost({ request, env }) {
   await env.WEDDING_BUCKET.put(duplicateKey, JSON.stringify({ objectKey, ...metadata }), {
     httpMetadata: { contentType: "application/json" }
   });
+  await saveMonthlyUsage(env, quota.key, quota.usedBytes + uploadBytes, quota.limitBytes);
 
   return json({ duplicate: false, key: objectKey, hash: digest });
 }
@@ -81,4 +92,51 @@ function extensionFor(name, type) {
 async function sha256(buffer) {
   const digest = await crypto.subtle.digest("SHA-256", buffer);
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function checkMonthlyQuota(env, now, uploadBytes) {
+  const limitGb = Number(env.MONTHLY_UPLOAD_LIMIT_GB || DEFAULT_MONTHLY_LIMIT_GB);
+  const limitBytes = Math.floor(limitGb * 1024 * 1024 * 1024);
+  const key = `usage/${now.toISOString().slice(0, 7)}.json`;
+  const usageObject = await env.WEDDING_BUCKET.get(key);
+  const usage = usageObject ? await usageObject.json() : {};
+  const usedBytes = usageObject ? Number(usage.usedBytes || 0) : await calculateMonthUsedBytes(env, now);
+  const nextUsedBytes = usedBytes + uploadBytes;
+
+  return {
+    allowed: nextUsedBytes <= limitBytes,
+    key,
+    limitBytes,
+    usedBytes,
+    nextUsedBytes,
+    remainingBytes: Math.max(0, limitBytes - usedBytes)
+  };
+}
+
+async function calculateMonthUsedBytes(env, now) {
+  const monthPrefix = now.toISOString().slice(0, 7);
+  const originalBytes = await sumPrefixBytes(env, `originals/${monthPrefix}`);
+  const previewBytes = await sumPrefixBytes(env, `previews/${monthPrefix}`);
+  return originalBytes + previewBytes;
+}
+
+async function sumPrefixBytes(env, prefix) {
+  let cursor;
+  let total = 0;
+  do {
+    const listed = await env.WEDDING_BUCKET.list({ prefix, cursor, limit: 1000 });
+    total += listed.objects.reduce((sum, object) => sum + Number(object.size || 0), 0);
+    cursor = listed.truncated ? listed.cursor : undefined;
+  } while (cursor);
+  return total;
+}
+
+async function saveMonthlyUsage(env, key, usedBytes, limitBytes) {
+  await env.WEDDING_BUCKET.put(key, JSON.stringify({
+    usedBytes,
+    limitBytes,
+    updatedAt: new Date().toISOString()
+  }), {
+    httpMetadata: { contentType: "application/json" }
+  });
 }

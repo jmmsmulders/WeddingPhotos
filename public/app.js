@@ -5,9 +5,12 @@ const compressImages = document.querySelector("#compressImages");
 const uploadButton = document.querySelector("#uploadButton");
 const progressBar = document.querySelector("#progressBar");
 const statusText = document.querySelector("#status");
+const quotaStatus = document.querySelector("#quotaStatus");
 const fileList = document.querySelector("#fileList");
 
 let selectedFiles = [];
+
+loadQuota();
 
 fileInput.addEventListener("change", () => setFiles([...fileInput.files]));
 
@@ -68,6 +71,7 @@ uploadButton.addEventListener("click", async () => {
     selectedFiles = [];
     fileInput.value = "";
     renderFileList();
+    loadQuota();
   } catch (error) {
     statusText.textContent = error.message || "Upload failed. Please try again.";
   } finally {
@@ -119,4 +123,15 @@ function formatBytes(bytes) {
 
 function escapeHtml(value) {
   return value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+}
+
+async function loadQuota() {
+  try {
+    const response = await fetch("/api/quota");
+    const quota = await response.json();
+    if (!response.ok) throw new Error(quota.error);
+    quotaStatus.textContent = `${formatBytes(quota.remainingBytes)} upload space left this month.`;
+  } catch {
+    quotaStatus.textContent = "";
+  }
 }

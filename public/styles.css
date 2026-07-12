@@ -167,6 +167,36 @@ input {
   flex-wrap: wrap;
 }
 
+.gallery-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.segmented {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.segmented button {
+  min-height: 38px;
+  padding: 0 13px;
+  color: var(--muted);
+  background: transparent;
+}
+
+.segmented button[aria-pressed="true"] {
+  color: white;
+  background: var(--ink);
+}
+
 button,
 .ghost-link {
   min-height: 46px;
@@ -219,6 +249,10 @@ button:disabled {
   color: var(--muted);
 }
 
+.quota-status {
+  font-weight: 800;
+}
+
 .file-list {
   display: grid;
   gap: 8px;
@@ -252,6 +286,13 @@ button:disabled {
   column-gap: 14px;
 }
 
+.gallery-compact {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  columns: initial;
+}
+
 .gallery-item {
   display: inline-block;
   width: 100%;
@@ -267,6 +308,18 @@ button:disabled {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.gallery-compact .gallery-item {
+  display: block;
+  margin: 0;
+}
+
+.gallery-compact .gallery-item img,
+.gallery-compact .gallery-item video {
+  aspect-ratio: 1;
+  height: 100%;
+  object-fit: cover;
 }
 
 .gallery-meta {
@@ -291,5 +344,9 @@ button:disabled {
 
   .gallery {
     columns: 3;
+  }
+
+  .gallery-compact {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }

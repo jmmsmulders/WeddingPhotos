@@ -1,6 +1,6 @@
 # WeddingPhotos
 
-A free-hostable wedding photo drop for Joep & Partner. Guests scan a QR code, upload photos or videos without logging in, and originals are stored in Cloudflare R2.
+A free-hostable wedding photo drop for Joep & Juliana. Guests scan a QR code, upload photos or videos without logging in, and originals are stored in Cloudflare R2.
 
 ## What is included
 
@@ -17,12 +17,20 @@ A free-hostable wedding photo drop for Joep & Partner. Guests scan a QR code, up
 ## Cloudflare setup
 
 1. Create a Cloudflare Pages project connected to this repo.
-2. Create an R2 bucket named `wedding-photos`.
-3. Add an R2 binding for Pages Functions:
+2. Use these Pages build settings:
+   - Framework preset: `None`
+   - Build command: leave empty
+   - Build output directory: `public`
+   - Deploy command: leave empty
+3. Create an R2 bucket named `wedding-photos`.
+4. Add an R2 binding for Pages Functions:
    - Variable name: `WEDDING_BUCKET`
    - Bucket: `wedding-photos`
-4. Add a Pages environment variable named `ADMIN_KEY` with a private password.
-5. Deploy with `npm run deploy`, or use the Cloudflare dashboard.
+5. Add a Pages environment variable named `ADMIN_KEY` with a private password.
+6. Optional but recommended: add `MONTHLY_UPLOAD_LIMIT_GB` with `9.5` to stop uploads before the 10 GB free monthly storage limit is exceeded.
+7. Redeploy from the Cloudflare dashboard.
+
+Do not use `npx wrangler deploy` for this project. That command deploys a Worker and will fail because this app is a Cloudflare Pages site with Pages Functions. If Cloudflare asks for a deploy command, use `npx wrangler pages deploy public --project-name=wedding-photos` or leave the deploy command empty.
 
 ## Local development
 
@@ -71,4 +79,4 @@ Open the printed QR URL and use it for signs, table cards, or invitations.
 
 ## Personalize it
 
-Replace `Partner` in `public/index.html`, `public/gallery.html`, and `public/admin.html` with the correct name before printing the QR code.
+The public pages are currently personalized for Joep & Juliana.

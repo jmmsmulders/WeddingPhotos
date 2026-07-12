@@ -1,5 +1,13 @@
 const gallery = document.querySelector("#gallery");
 const statusText = document.querySelector("#galleryStatus");
+const largeView = document.querySelector("#largeView");
+const compactView = document.querySelector("#compactView");
+
+const savedView = localStorage.getItem("weddingGalleryView") || "large";
+setGalleryView(savedView);
+
+largeView.addEventListener("click", () => setGalleryView("large"));
+compactView.addEventListener("click", () => setGalleryView("compact"));
 
 loadGallery();
 setInterval(loadGallery, 15000);
@@ -41,4 +49,12 @@ function renderItem(item) {
 
   figure.append(media, caption);
   return figure;
+}
+
+function setGalleryView(view) {
+  const isCompact = view === "compact";
+  gallery.classList.toggle("gallery-compact", isCompact);
+  largeView.setAttribute("aria-pressed", String(!isCompact));
+  compactView.setAttribute("aria-pressed", String(isCompact));
+  localStorage.setItem("weddingGalleryView", isCompact ? "compact" : "large");
 }
