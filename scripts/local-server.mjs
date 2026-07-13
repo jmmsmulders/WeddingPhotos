@@ -21,9 +21,9 @@ createServer(async (req, res) => {
     const url = new URL(req.url || "/", `http://${req.headers.host}`);
     if (req.method === "POST" && url.pathname === "/api/upload") return upload(req, res);
     if (req.method === "GET" && url.pathname === "/api/gallery") return gallery(res);
-    if (req.method === "GET" && url.pathname === "/api/quota") return quota(res);
+    if (req.method === "GET" && url.pathname === "/api/quota") return quota(req, res);
     if (req.method === "GET" && url.pathname === "/api/admin/uploads") return admin(req, res);
-    if (req.method === "GET" && url.pathname === "/api/file") return file(url, res);
+    if (req.method === "GET" && url.pathname === "/api/file") return file(req, url, res);
     return staticFile(url, res);
   } catch (error) {
     json(res, { error: error.message || "Local server error." }, 500);
@@ -48,6 +48,7 @@ async function upload(req, res) {
   const originalName = clean(form.get("originalName") || file?.name, 180);
 
   if (!file || typeof file === "string") return json(res, { error: "Missing file." }, 400);
+  if (!guestName) return json(res, { error: "Please enter your name before uploading." }, 400);
   if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) return json(res, { error: "Only photos and videos are accepted." }, 400);
 
   const duplicatePath = join(hashesDir, `${hash}.json`);
@@ -109,7 +110,9 @@ async function admin(req, res) {
   });
 }
 
-async function quota(res) {
+async function quota(req, res) {
+  if (req.headers["x-admin-key"] !== adminKey) return json(res, { error: "Invalid admin key." }, 401);
+
   const usage = await readUsage(new Date());
   json(res, {
     month: usage.month,
@@ -120,7 +123,7 @@ async function quota(res) {
   });
 }
 
-async function file(url, res) {
+async function file(req, url, res) {
   const key = url.searchParams.get("key") || "";
   const parts = key.split("/");
   if (parts.length !== 2 || !["originals", "previews"].includes(parts[0])) return notFound(res);
@@ -128,7 +131,31 @@ async function file(url, res) {
   const target = join(dir, parts[1]);
   const info = await stat(target).catch(() => null);
   if (!info?.isFile()) return notFound(res);
-  res.writeHead(200, { "content-type": contentType(target), "content-length": info.size, "cache-control": "no-store" });
+
+  const headers = {
+    "content-type": contentType(target),
+    "cache-control": "no-store",
+    "accept-ranges": "bytes"
+  };
+  const range = parseByteRange(req.headers.range, info.size);
+
+  if (range?.invalid) {
+    res.writeHead(416, { ...headers, "content-range": `bytes */${info.size}` });
+    res.end();
+    return;
+  }
+
+  if (range) {
+    res.writeHead(206, {
+      ...headers,
+      "content-length": range.length,
+      "content-range": `bytes ${range.start}-${range.end}/${info.size}`
+    });
+    createReadStream(target, { start: range.start, end: range.end }).pipe(res);
+    return;
+  }
+
+  res.writeHead(200, { ...headers, "content-length": info.size });
   createReadStream(target).pipe(res);
 }
 
@@ -196,4 +223,32 @@ function contentType(pathname) {
     ".heic": "image/heic",
     ".mp4": "video/mp4"
   }[extname(pathname).toLowerCase()] || "application/octet-stream";
+}
+
+function parseByteRange(header, size) {
+  if (!header) return null;
+
+  const match = /^bytes=(\d*)-(\d*)$/.exec(String(header).trim());
+  if (!match || size < 1) return { invalid: true };
+
+  const [, rawStart, rawEnd] = match;
+  if (!rawStart && !rawEnd) return { invalid: true };
+
+  let start;
+  let end;
+
+  if (!rawStart) {
+    const suffixLength = Number(rawEnd);
+    if (!Number.isSafeInteger(suffixLength) || suffixLength < 1) return { invalid: true };
+    start = Math.max(size - suffixLength, 0);
+    end = size - 1;
+  } else {
+    start = Number(rawStart);
+    end = rawEnd ? Number(rawEnd) : size - 1;
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) return { invalid: true };
+    if (start > end || start >= size) return { invalid: true };
+    end = Math.min(end, size - 1);
+  }
+
+  return { start, end, length: end - start + 1 };
 }

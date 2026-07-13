@@ -10,39 +10,43 @@
   <body>
     <main class="shell">
       <section class="intro" aria-labelledby="title">
-        <p class="kicker">Since you're a data person...</p>
-        <h1 id="title">Welcome to Joep &amp; Juliana's Wedding!</h1>
-        <p class="lede">We'd love to see the day through your eyes. Upload your favorite photos and videos below.</p>
+        <div class="language-picker" aria-label="Choose language">
+          <button class="language-option" type="button" data-language="en" aria-pressed="true"><span class="flag flag-en" aria-hidden="true"></span>English</button>
+          <button class="language-option" type="button" data-language="nl" aria-pressed="false"><span class="flag flag-nl" aria-hidden="true"></span>Nederlands</button>
+          <button class="language-option" type="button" data-language="pt" aria-pressed="false"><span class="flag flag-pt" aria-hidden="true"></span>Portugu&ecirc;s</button>
+          <button class="language-option" type="button" data-language="es" aria-pressed="false"><span class="flag flag-es" aria-hidden="true"></span>Espa&ntilde;ol</button>
+        </div>
+        <h1 id="title" data-i18n="title">Welcome to Joep &amp; Juliana's wedding album</h1>
+        <p class="lede" data-i18n="lede">We'd love to see the day through your eyes. Upload your favorite photos and videos below.</p>
       </section>
 
       <section class="uploader" aria-label="Photo and video uploader">
         <label class="field">
-          <span>Your name <small>optional</small></span>
-          <input id="guestName" autocomplete="name" maxlength="80" placeholder="So we know who to thank" />
+          <span data-i18n="nameLabel">Your name</span>
+          <input id="guestName" autocomplete="name" maxlength="80" required placeholder="So we know who to thank" data-i18n-placeholder="namePlaceholder" />
         </label>
 
         <label id="dropZone" class="drop-zone" for="fileInput">
           <input id="fileInput" type="file" accept="image/*,video/*" multiple />
           <span class="drop-icon" aria-hidden="true">+</span>
-          <strong>Tap to choose files</strong>
-          <span>or drag &amp; drop photos and videos here</span>
+          <strong data-i18n="chooseFiles">Tap to choose files</strong>
+          <span data-i18n="dropFiles">or drag &amp; drop photos and videos here</span>
         </label>
 
         <label class="toggle">
           <input id="compressImages" type="checkbox" checked />
-          <span>Compress large photos before upload</span>
+          <span data-i18n="compress">Compress large photos before upload</span>
         </label>
 
         <div class="actions">
-          <button id="uploadButton" type="button" disabled>Upload memories</button>
-          <a class="ghost-link" href="/gallery.html">View live gallery</a>
+          <button id="uploadButton" type="button" disabled data-i18n="upload">Upload memories</button>
+          <a class="ghost-link" href="/gallery.html" data-i18n="gallery">View live gallery</a>
         </div>
 
         <div class="progress" aria-live="polite">
           <div class="progress-bar" id="progressBar"></div>
         </div>
-        <p id="status" class="status">Choose a few files to begin.</p>
-        <p id="quotaStatus" class="status quota-status">Checking monthly upload space...</p>
+        <p id="status" class="status" data-i18n="statusInitial">Choose a few files to begin.</p>
         <ul id="fileList" class="file-list" aria-label="Selected files"></ul>
       </section>
     </main>

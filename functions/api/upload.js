@@ -15,6 +15,7 @@ export async function onRequestPost({ request, env }) {
 
   if (!file || typeof file === "string") return json({ error: "Missing file." }, 400);
   if (preview && typeof preview === "string") return json({ error: "Invalid preview file." }, 400);
+  if (!guestName) return json({ error: "Please enter your name before uploading." }, 400);
   if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) return json({ error: "Only photos and videos are accepted." }, 400);
   if (preview && !preview.type.startsWith("image/")) return json({ error: "Compressed previews must be images." }, 400);
   if (file.size > MAX_BYTES) return json({ error: "That file is too large. Please keep uploads under 120 MB." }, 413);

@@ -40,8 +40,59 @@ body {
   min-height: 36vh;
   display: grid;
   align-content: end;
-  gap: 12px;
+  gap: 14px;
   padding: 30px 0;
+}
+
+.language-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.language-option {
+  min-height: 38px;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.76);
+  font-size: 0.9rem;
+}
+
+.language-option[aria-pressed="true"] {
+  border-color: var(--ink);
+  color: white;
+  background: var(--ink);
+}
+
+.flag {
+  width: 22px;
+  height: 15px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(34, 32, 29, 0.22);
+  border-radius: 2px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.36) inset;
+}
+
+.flag-en {
+  background:
+    linear-gradient(90deg, transparent 0 42%, #cf142b 42% 58%, transparent 58%),
+    linear-gradient(0deg, transparent 0 36%, #cf142b 36% 64%, transparent 64%),
+    #ffffff;
+}
+
+.flag-nl {
+  background: linear-gradient(#ae1c28 0 33.33%, #ffffff 33.33% 66.66%, #21468b 66.66%);
+}
+
+.flag-pt {
+  background: linear-gradient(90deg, #006600 0 40%, #ff0000 40%);
+}
+
+.flag-es {
+  background: linear-gradient(#aa151b 0 25%, #f1bf00 25% 75%, #aa151b 75%);
 }
 
 .kicker {
@@ -55,10 +106,10 @@ body {
 
 h1 {
   margin: 0;
-  max-width: 11ch;
+  max-width: 13ch;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(3rem, 14vw, 5.9rem);
-  line-height: 0.9;
+  font-size: clamp(2.35rem, 10vw, 4.5rem);
+  line-height: 0.96;
   letter-spacing: 0;
 }
 

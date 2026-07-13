@@ -1,6 +1,14 @@
 const DEFAULT_MONTHLY_LIMIT_GB = 9.5;
 
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ request, env }) {
+  if (!env.ADMIN_KEY) {
+    return json({ error: "ADMIN_KEY is not configured." }, 500);
+  }
+
+  if (request.headers.get("x-admin-key") !== env.ADMIN_KEY) {
+    return json({ error: "Invalid admin key." }, 401);
+  }
+
   if (!env.WEDDING_BUCKET) {
     return json({ error: "R2 bucket binding WEDDING_BUCKET is not configured." }, 500);
   }
