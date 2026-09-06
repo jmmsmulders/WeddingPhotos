@@ -38,6 +38,8 @@ body {
 
 .intro {
   min-height: 36vh;
+  width: 100%;
+  min-width: 0;
   display: grid;
   align-content: end;
   gap: 14px;
@@ -88,11 +90,36 @@ body {
 }
 
 .flag-pt {
-  background: linear-gradient(90deg, #006600 0 40%, #ff0000 40%);
+  position: relative;
+  background: #009c3b;
+}
+
+.flag-pt::before {
+  position: absolute;
+  inset: 8% 6%;
+  background: #ffdf00;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  content: "";
+  z-index: 1;
+}
+
+.flag-pt::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 34%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #002776;
+  content: "";
+  transform: translate(-50%, -50%);
+  z-index: 2;
 }
 
 .flag-es {
-  background: linear-gradient(#aa151b 0 25%, #f1bf00 25% 75%, #aa151b 75%);
+  background:
+    radial-gradient(circle at 50% 50%, #f6b40e 0 10%, transparent 11%),
+    linear-gradient(#74acdf 0 33.33%, #ffffff 33.33% 66.66%, #74acdf 66.66%);
 }
 
 .kicker {
@@ -106,16 +133,20 @@ body {
 
 h1 {
   margin: 0;
-  max-width: 13ch;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2.35rem, 10vw, 4.5rem);
-  line-height: 0.96;
+  font-size: clamp(0.78rem, 3.5vw, 1.75rem);
+  line-height: 0.85;
   letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .lede {
   margin: 0;
-  max-width: 36rem;
+  width: 100%;
+  max-width: none;
   color: var(--muted);
   font-size: 1.12rem;
   line-height: 1.6;
@@ -194,19 +225,6 @@ input {
   background: var(--rose);
   font-size: 2rem;
   line-height: 1;
-}
-
-.toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted);
-  font-weight: 700;
-}
-
-.toggle input {
-  width: 20px;
-  height: 20px;
 }
 
 .actions,

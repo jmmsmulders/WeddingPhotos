@@ -1,7 +1,6 @@
 const fileInput = document.querySelector("#fileInput");
 const dropZone = document.querySelector("#dropZone");
 const guestName = document.querySelector("#guestName");
-const compressImages = document.querySelector("#compressImages");
 const uploadButton = document.querySelector("#uploadButton");
 const progressBar = document.querySelector("#progressBar");
 const statusText = document.querySelector("#status");
@@ -19,7 +18,6 @@ const translations = {
     namePlaceholder: "So we know who to thank",
     chooseFiles: "Tap to choose files",
     dropFiles: "or drag & drop photos and videos here",
-    compress: "Compress large photos before upload",
     upload: "Upload memories",
     gallery: "View live gallery",
     statusInitial: "Choose a few files to begin.",
@@ -39,7 +37,6 @@ const translations = {
     namePlaceholder: "Dan weten we wie we kunnen bedanken",
     chooseFiles: "Tik om bestanden te kiezen",
     dropFiles: "of sleep foto's en video's hierheen",
-    compress: "Grote foto's verkleinen voor uploaden",
     upload: "Herinneringen uploaden",
     gallery: "Bekijk live galerij",
     statusInitial: "Kies een paar bestanden om te beginnen.",
@@ -59,7 +56,6 @@ const translations = {
     namePlaceholder: "Para sabermos a quem agradecer",
     chooseFiles: "Toque para escolher arquivos",
     dropFiles: "ou arraste fotos e vídeos para cá",
-    compress: "Comprimir fotos grandes antes do envio",
     upload: "Enviar memórias",
     gallery: "Ver galeria ao vivo",
     statusInitial: "Escolha alguns arquivos para começar.",
@@ -79,7 +75,6 @@ const translations = {
     namePlaceholder: "Para saber a quién agradecer",
     chooseFiles: "Toca para elegir archivos",
     dropFiles: "o arrastra fotos y videos aquí",
-    compress: "Comprimir fotos grandes antes de subirlas",
     upload: "Subir recuerdos",
     gallery: "Ver galería en vivo",
     statusInitial: "Elige algunos archivos para empezar.",
@@ -137,7 +132,7 @@ uploadButton.addEventListener("click", async () => {
 
     for (let index = 0; index < selectedFiles.length; index += 1) {
       const original = selectedFiles[index];
-      const preview = compressImages.checked ? await maybeCompressImage(original) : null;
+      const preview = await maybeCompressImage(original);
       const hash = await sha256(original);
       const form = new FormData();
       form.append("file", original, original.name);
