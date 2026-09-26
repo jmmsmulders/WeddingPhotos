@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Downloaded wedding originals are kept in OneDrive/local storage, not Git.
+downloaded-photos/
+
 # C extensions
 *.so
 
