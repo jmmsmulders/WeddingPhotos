@@ -2,6 +2,12 @@ const gallery = document.querySelector("#gallery");
 const statusText = document.querySelector("#galleryStatus");
 const largeView = document.querySelector("#largeView");
 const compactView = document.querySelector("#compactView");
+const loadMoreButton = document.querySelector("#loadMore");
+
+let loadedPageCount = 1;
+let totalItems = 0;
+let hasMore = false;
+let loading = false;
 
 const currentLanguage = localStorage.getItem("weddingUploadLanguage") || "en";
 const translations = {
@@ -13,9 +19,11 @@ const translations = {
     largeView: "Large",
     compactView: "Gallery",
     upload: "Upload",
+    loadMore: "Load more photos",
+    loadingMore: "Loading older uploads...",
     loading: "Loading the latest uploads...",
     loadError: "Could not load gallery yet.",
-    showing: (count) => `Showing ${count} recent upload${count === 1 ? "" : "s"}.`,
+    showing: (visible, total) => `Showing ${visible} of ${total} upload${total === 1 ? "" : "s"}.`,
     empty: "No uploads yet.",
     fromGuest: (name) => `From ${name}`,
     fromUnknown: "From a guest",
@@ -29,9 +37,11 @@ const translations = {
     largeView: "Groot",
     compactView: "Galerij",
     upload: "Uploaden",
+    loadMore: "Meer foto's laden",
+    loadingMore: "Oudere uploads laden...",
     loading: "De nieuwste uploads laden...",
     loadError: "De galerij kan nog niet worden geladen.",
-    showing: (count) => `${count} recente upload${count === 1 ? "" : "s"} zichtbaar.`,
+    showing: (visible, total) => `${visible} van ${total} upload${total === 1 ? "" : "s"} zichtbaar.`,
     empty: "Nog geen uploads.",
     fromGuest: (name) => `Van ${name}`,
     fromUnknown: "Van een gast",
@@ -45,9 +55,11 @@ const translations = {
     largeView: "Grande",
     compactView: "Galeria",
     upload: "Enviar",
+    loadMore: "Carregar mais fotos",
+    loadingMore: "Carregando envios antigos...",
     loading: "Carregando os envios mais recentes...",
     loadError: "Ainda n\u00e3o foi poss\u00edvel carregar a galeria.",
-    showing: (count) => `Mostrando ${count} envio${count === 1 ? "" : "s"} recente${count === 1 ? "" : "s"}.`,
+    showing: (visible, total) => `Mostrando ${visible} de ${total} envio${total === 1 ? "" : "s"}.`,
     empty: "Ainda n\u00e3o h\u00e1 envios.",
     fromGuest: (name) => `De ${name}`,
     fromUnknown: "De um convidado",
@@ -61,9 +73,11 @@ const translations = {
     largeView: "Grande",
     compactView: "Galer\u00eda",
     upload: "Subir",
+    loadMore: "Cargar m\u00e1s fotos",
+    loadingMore: "Cargando subidas antiguas...",
     loading: "Cargando las subidas m\u00e1s recientes...",
     loadError: "Todav\u00eda no se pudo cargar la galer\u00eda.",
-    showing: (count) => `Mostrando ${count} subida${count === 1 ? "" : "s"} reciente${count === 1 ? "" : "s"}.`,
+    showing: (visible, total) => `Mostrando ${visible} de ${total} subida${total === 1 ? "" : "s"}.`,
     empty: "Todav\u00eda no hay subidas.",
     fromGuest: (name) => `De ${name}`,
     fromUnknown: "De un invitado",
@@ -80,19 +94,68 @@ largeView.addEventListener("click", () => setGalleryView("large"));
 compactView.addEventListener("click", () => setGalleryView("compact"));
 
 loadGallery();
-setInterval(loadGallery, 15000);
+loadMoreButton.addEventListener("click", loadMore);
+setInterval(() => loadGallery({ refresh: true }), 15000);
 
-async function loadGallery() {
-  const response = await fetch("/api/gallery");
-  const result = await response.json().catch(() => ({ items: [] }));
+async function loadGallery({ refresh = false } = {}) {
+  if (loading) return;
+  loading = true;
 
-  if (!response.ok) {
-    statusText.textContent = result.error || t("loadError");
-    return;
+  const pageCount = refresh ? loadedPageCount : 1;
+  try {
+    const results = await Promise.all(Array.from({ length: pageCount }, (_, index) => fetchPage(index + 1)));
+    const items = results.flatMap((result) => result.items);
+    const latest = results[0];
+
+    gallery.replaceChildren(...items.map(renderItem));
+    loadedPageCount = pageCount;
+    totalItems = latest.total;
+    hasMore = results.at(-1).hasMore;
+    updatePagination();
+    updateStatus();
+  } catch (error) {
+    statusText.textContent = error.message || t("loadError");
+  } finally {
+    loading = false;
+    updatePagination();
   }
+}
 
-  gallery.replaceChildren(...result.items.map(renderItem));
-  statusText.textContent = result.items.length ? t("showing", result.items.length) : t("empty");
+async function loadMore() {
+  if (loading || !hasMore) return;
+  loading = true;
+  statusText.textContent = t("loadingMore");
+
+  try {
+    const result = await fetchPage(loadedPageCount + 1);
+    gallery.append(...result.items.map(renderItem));
+    loadedPageCount += 1;
+    totalItems = result.total;
+    hasMore = result.hasMore;
+    updatePagination();
+    updateStatus();
+  } catch (error) {
+    statusText.textContent = error.message || t("loadError");
+  } finally {
+    loading = false;
+    updatePagination();
+  }
+}
+
+async function fetchPage(page) {
+  const response = await fetch(`/api/gallery?page=${page}`, { cache: "no-store" });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || t("loadError"));
+  return result;
+}
+
+function updatePagination() {
+  loadMoreButton.hidden = !hasMore;
+  loadMoreButton.disabled = loading;
+}
+
+function updateStatus() {
+  statusText.textContent = totalItems ? t("showing", gallery.children.length, totalItems) : t("empty");
 }
 
 function renderItem(item) {

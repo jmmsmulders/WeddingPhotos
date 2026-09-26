@@ -344,6 +344,11 @@ button:disabled {
 
 .gallery-head {
   padding: 28px 0 22px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--paper);
+  box-shadow: 0 8px 18px rgba(55, 42, 30, 0.08);
 }
 
 .gallery-head h1 {
@@ -396,6 +401,12 @@ button:disabled {
   padding: 10px 12px;
   color: var(--muted);
   font-size: 0.92rem;
+}
+
+.gallery-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 8px;
 }
 
 .admin-key {

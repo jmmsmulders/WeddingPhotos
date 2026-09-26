@@ -20,7 +20,7 @@ createServer(async (req, res) => {
   try {
     const url = new URL(req.url || "/", `http://${req.headers.host}`);
     if (req.method === "POST" && url.pathname === "/api/upload") return upload(req, res);
-    if (req.method === "GET" && url.pathname === "/api/gallery") return gallery(res);
+    if (req.method === "GET" && url.pathname === "/api/gallery") return gallery(url, res);
     if (req.method === "GET" && url.pathname === "/api/quota") return quota(req, res);
     if (req.method === "GET" && url.pathname === "/api/admin/uploads") return admin(req, res);
     if (req.method === "GET" && url.pathname === "/api/file") return file(req, url, res);
@@ -84,10 +84,13 @@ async function upload(req, res) {
   json(res, { duplicate: false, key: objectName, hash });
 }
 
-async function gallery(res) {
+async function gallery(url, res) {
   const items = await listMetadata();
+  const pageSize = 60;
+  const page = Math.max(1, Number.parseInt(url.searchParams.get("page") || "1", 10) || 1);
+  const start = (page - 1) * pageSize;
   json(res, {
-    items: items.slice(0, 60).map((item) => ({
+    items: items.slice(start, start + pageSize).map((item) => ({
       key: item.key,
       url: `/api/file?key=${encodeURIComponent(item.previewKey ? `previews/${item.previewKey}` : `originals/${item.key}`)}`,
       originalUrl: `/api/file?key=${encodeURIComponent(`originals/${item.key}`)}`,
@@ -95,7 +98,11 @@ async function gallery(res) {
       originalName: item.originalName,
       uploadedAt: item.uploadedAt,
       type: item.type
-    }))
+    })),
+    page,
+    pageSize,
+    total: items.length,
+    hasMore: start + pageSize < items.length
   });
 }
 

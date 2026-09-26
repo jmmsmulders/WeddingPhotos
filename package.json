@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "local": "node scripts/local-server.mjs",
-    "dev": "wrangler pages dev public --compatibility-date=2026-07-12 --r2=WeddingPhotos",
+    "dev": "wrangler pages dev public --compatibility-date=2026-07-12",
     "deploy": "wrangler pages deploy public --project-name=wedding-photos",
     "qr": "node scripts/generate-qr.js"
   },
