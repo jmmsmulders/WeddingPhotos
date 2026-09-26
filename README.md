@@ -77,6 +77,42 @@ npm run qr -- https://your-project.pages.dev
 
 Open the printed QR URL and use it for signs, table cards, or invitations.
 
+## Download all originals
+
+The `download-photos.cmd` script copies the full-resolution files from the remote R2 folder `r2:wedding-photos/originals` into `downloaded-photos` inside this project. It uses `rclone copy`, so existing local files are kept and nothing is deleted.
+
+### One-time rclone setup
+
+1. Install [rclone](https://rclone.org/install/) (version 1.59 or newer).
+2. Create an R2 API token with Object Read permission, scoped to the `wedding-photos` bucket.
+3. Run `rclone config` and create an S3 remote named `r2` using Cloudflare R2, your Access Key ID, Secret Access Key, and the endpoint `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`.
+
+If rclone reports a bucket-access error with a bucket-scoped token, add `no_check_bucket = true` to the `[r2]` section of its config file.
+
+Run a safe preview first:
+
+```powershell
+.\download-photos.cmd -DryRun
+```
+
+Then download the files:
+
+```powershell
+.\download-photos.cmd -OpenDestination
+```
+
+To save directly to a shared OneDrive folder, provide its path:
+
+```powershell
+.\download-photos.cmd -Destination "C:\Users\your-name\OneDrive\Wedding Photos" -OpenDestination
+```
+
+The source can also be overridden if the R2 remote or bucket name changes:
+
+```powershell
+.\download-photos.cmd -Source "r2:another-bucket/originals"
+```
+
 ## Personalize it
 
 The public pages are currently personalized for Joep & Juliana.
